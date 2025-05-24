@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Exit Summary</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            margin: 0; padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 80%;
+            text-align: center;
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 20px;
+            margin: 15px 0;
+            color: #555;
+        }
+
+        strong {
+            color: #34495e;
+            font-weight: 700;
+        }
+
+        h3 {
+            color: #27ae60;
+            font-size: 24px;
+            margin-top: 30px;
+        }
+
+        img {
+            margin-top: 20px;
+            border: 5px solid #27ae60;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 100%;
+            width: 250px;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 30px;
+            background-color: #3498db;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        a:hover {
+            background-color: #2980b9;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                width: 90%;
+            }
+
+            h2 {
+                font-size: 28px;
+            }
+
+            p {
+                font-size: 18px;
+            }
+
+            h3 {
+                font-size: 22px;
+            }
+
+            img {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Vehicle Exit Summary</h2>
+        <p><strong>Number Plate:</strong> {{ number_plate }}</p>
+        <p><strong>Total Parking Time:</strong> {{ duration }}</p>
+        <p><strong>Amount Due:</strong> ₹{{ fee }}</p>
+
+        <h3>Payment QR Code</h3>
+        <p>Kindly scan the QR code below to complete payment via UPI:</p>
+        <img src="{{ url_for('static', filename='qr/upi_qr.jpeg') }}" alt="UPI QR Code">
+
+        <br><br>
+        <a href="/entry">Return to Entry</a>
+    </div>
+</body>
+</html>

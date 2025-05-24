@@ -1,0 +1,100 @@
+<!-- dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking System Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .message {
+            font-size: 1.2em;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+
+        .details {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .details p {
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+
+        .details p strong {
+            color: #2980b9;
+        }
+
+        .button {
+            display: block;
+            width: 200px;
+            padding: 12px;
+            margin: 20px auto;
+            background-color: #2980b9;
+            color: #ffffff;
+            text-align: center;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #3498db;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Parking System</h1>
+        <div class="message">
+            <p>Your vehicle with registration <strong>{{ vehicle_number }}</strong> is currently parked in slot <strong>{{ slot_number }}</strong>.</p>
+            <p>Time of Entry: <strong>{{ entry_time }}</strong></p>
+        </div>
+        <div class="details">
+            <p><strong>Vehicle Number:</strong> {{ vehicle_number }}</p>
+            <p><strong>Slot Number:</strong> {{ slot_number }}</p>
+            <p><strong>Entry Time:</strong> {{ entry_time }}</p>
+        </div>
+        <a href="/exit" class="button">Go to Exit</a>
+    </div>
+
+    <footer>
+        <p>Vehicle Parking System</p>
+    </footer>
+</body>
+</html>

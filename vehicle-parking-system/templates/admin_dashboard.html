@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #2c3e50;
+        }
+
+        h3 {
+            color: #34495e;
+            margin-top: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #ecf0f1;
+        }
+
+        tr:hover {
+            background-color: #dfe6e9;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .action-button {
+            background-color: #27ae60;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .action-button:hover {
+            background-color: #219150;
+        }
+
+        .status-available {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-occupied {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .status-active {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-inactive {
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+
+        .delete-button {
+            background-color: #e74c3c;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        .delete-button:hover {
+            background-color: #c0392b;
+        }
+
+        .lock-button {
+            background-color: #f39c12;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .lock-button:hover {
+            background-color: #d68910;
+        }
+
+        .locked {
+            background-color: #e74c3c !important;
+        }
+    </style>
+</head>
+<body>
+    <h2>Admin Control Panel</h2>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('add_slot') }}" class="action-button">➕ Create Slot</a>
+        <a href="{{ url_for('manage_prices') }}" class="action-button">💰 Set Parking Rates</a>
+    </div>
+
+    <h3>Current Parking Slots</h3>
+    <table>
+        <tr>
+            <th>Slot ID</th>
+            <th>Category</th>
+            <th>Availability</th>
+            <th>Tools</th>
+        </tr>
+        {% for slot in slots %}
+        <tr>
+            <td>{{ slot.id }}</td>
+            <td>{{ slot.type }}</td>
+            <td class="{% if slot.is_available %}status-available{% else %}status-occupied{% endif %}">
+                {{ 'Available' if slot.is_available else 'In Use' }}
+            </td>
+            <td>
+                {% if slot.is_available %}
+                    <a href="{{ url_for('delete_slot', slot_id=slot.id) }}" 
+                       class="delete-button" 
+                       onclick="return confirm('Do you really want to remove this slot?')">
+                    Remove
+                    </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Vehicle Logs</h3>
+    <table>
+        <tr>
+            <th>Plate Number</th>
+            <th>Allocated Slot</th>
+            <th>Time In</th>
+            <th>Time Out</th>
+            <th>Current Status</th>
+            <th>Options</th>
+        </tr>
+        {% for v in vehicles %}
+        <tr>
+            <td>{{ v.number_plate }}</td>
+            <td>{{ v.slot_id }}</td>
+            <td>{{ v.entry_time }}</td>
+            <td>{{ v.exit_time if v.exit_time else 'Still Inside' }}</td>
+            <td class="{% if v.is_active %}status-active{% else %}status-inactive{% endif %}">
+                {{ 'Ongoing' if v.is_active else 'Exited' }}
+                {% if v.is_locked and v.is_active %}
+                    <br><span style="color: #e74c3c;">(Access Blocked)</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if v.is_active %}
+                    <a href="{{ url_for('toggle_vehicle_lock', vehicle_id=v.id) }}" 
+                       class="lock-button {% if v.is_locked %}locked{% endif %}">
+                        {{ 'Unblock' if v.is_locked else 'Block' }}
+                    </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

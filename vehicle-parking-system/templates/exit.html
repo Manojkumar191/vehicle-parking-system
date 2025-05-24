@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Vehicle Exit</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+            font-size: 14px;
+            color: #222;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 26px;
+            color: #014a86;
+            margin-bottom: 25px;
+        }
+
+        form {
+            background: #fff;
+            padding: 25px;
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+            border: 2px solid #026aa7;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #444;
+        }
+
+        input[type="text"] {
+            width: 50%;
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #8ec1f7;
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3f8efc;
+            box-shadow: 0 0 5px rgba(63, 142, 252, 0.4);
+        }
+
+        input[type="submit"], button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 15px;
+            border-radius: 5px;
+            border: none;
+            background-color: #026aa7;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"]:hover,
+        button:hover {
+            background-color: #014a86;
+        }
+
+        button:disabled,
+        input[type="submit"]:disabled {
+            background-color: #9aaebf;
+            cursor: not-allowed;
+        }
+
+        video {
+            display: block;
+            width: 100%;
+            max-width: 260px;
+            height: 180px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 2px solid #026aa7;
+        }
+
+        #message {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 700;
+            color: #2e7d32;
+            background-color: #dcedc8;
+            border: 1px solid #7cb342;
+        }
+
+        p {
+            font-size: 15px;
+            text-align: center;
+            color: #444;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 480px) {
+            input[type="text"] {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>Vehicle Exit</h2>
+    <form method="POST">
+        <label for="passwordInput">Password:</label>
+        <input id="passwordInput" name="password" maxlength="4" type="text" required>
+
+        <label for="videoPlate">Number Plate Camera:</label>
+        <video id="videoPlate" autoplay></video>
+        <button type="button" onclick="captureImage('/capture_plate', 'videoPlate')">📸 Capture Number Plate</button>
+
+        <label for="videoLicense">License Camera:</label>
+        <video id="videoLicense" autoplay></video>
+        <button type="button" onclick="captureImage('/capture_license', 'videoLicense')">📸 Capture License</button>
+
+        <input id="submitBtn" type="submit" value="🚀 Submit Exit" disabled>
+
+        {% if duration %}
+            <p><strong>🕒 Parking Duration:</strong> {{ duration }}</p>
+        {% endif %}
+
+        <div id="message">✅ Image captured successfully!</div>
+    </form>
+
+    <script>
+        let streamPlate, streamLicense;
+        let isPlateCaptured = false;
+        let isLicenseCaptured = false;
+
+        async function startCamera(id) {
+            const video = document.getElementById(id);
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            await video.play();
+
+            if (id === 'videoPlate') streamPlate = stream;
+            else if (id === 'videoLicense') streamLicense = stream;
+        }
+
+        async function captureImage(endpoint, videoId) {
+            const video = document.getElementById(videoId);
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, 640, 480);
+
+            const imageDataUrl = canvas.toDataURL('image/jpeg');
+            await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageDataUrl })
+            });
+
+            const messageEl = document.getElementById('message');
+            messageEl.style.display = 'block';
+            setTimeout(() => messageEl.style.display = 'none', 2000);
+
+            if (videoId === 'videoPlate') isPlateCaptured = true;
+            else if (videoId === 'videoLicense') isLicenseCaptured = true;
+
+            if (isPlateCaptured && isLicenseCaptured) {
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        window.onload = () => {
+            startCamera('videoPlate');
+            startCamera('videoLicense');
+        };
+    </script>
+</body>
+</html>

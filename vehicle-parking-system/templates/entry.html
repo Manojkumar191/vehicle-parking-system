@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Parking Entry</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e3f2fd;
+            padding: 20px;
+            font-size: 14px;
+            color: #212121;
+        }
+
+        h2 {
+            font-size: 26px;
+            color: #01579b;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            border: 2px solid #81c784;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 8px;
+            display: block;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="submit"],
+        button,
+        select {
+            font-size: 14px;
+            padding: 10px;
+            margin-bottom: 15px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 5px;
+            border: 1px solid #90caf9;
+            transition: 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #42a5f5;
+            box-shadow: 0 0 6px rgba(66, 165, 245, 0.4);
+        }
+
+        input[type="submit"],
+        button {
+            background-color: #0277bd;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+
+        input[type="submit"]:hover,
+        button:hover {
+            background-color: #01579b;
+        }
+
+        .slot-card {
+            display: inline-block;
+            width: 70px;
+            height: 70px;
+            border: 1px solid #0277bd;
+            margin: 6px;
+            text-align: center;
+            line-height: 70px;
+            font-size: 14px;
+            border-radius: 5px;
+            background-color: #e3f2fd;
+            position: relative;
+        }
+
+        .slot-card.selected {
+            background-color: #81d4fa;
+            border: 2px solid #01579b;
+        }
+
+        .slot-card input[type="radio"] {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            transform: scale(1.2);
+        }
+
+        .slot-card label {
+            display: block;
+            margin-top: 25px;
+            font-weight: 500;
+            color: #000;
+        }
+
+        video {
+            width: 100%;
+            max-width: 280px;
+            height: 180px;
+            border: 2px solid #0277bd;
+            margin-bottom: 10px;
+            display: block;
+            border-radius: 5px;
+        }
+
+        #confirmationMsg {
+            color: #388e3c;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            margin-top: 15px;
+            font-size: 15px;
+        }
+
+        .grid-layout {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .type-picker {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+
+        .radio-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .video-area {
+            margin-top: 20px;
+        }
+
+        .video-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .grid-wrapper {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button:disabled {
+            background-color: #90a4ae;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 640px) {
+            .slot-card {
+                width: 60px;
+                height: 60px;
+                font-size: 12px;
+                line-height: 60px;
+            }
+        }
+    </style>
+
+    <script>
+        let plateStream, licenseStream;
+        let isPlateCaptured = false;
+        let isLicenseCaptured = false;
+
+        async function initializeCamera(id) {
+            const videoEl = document.getElementById(id);
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            videoEl.srcObject = stream;
+            if (id === 'videoPlate') plateStream = stream;
+            if (id === 'videoLicense') licenseStream = stream;
+            await videoEl.play();
+        }
+
+        async function processImageCapture(endpoint, videoId, streamObject) {
+            const videoEl = document.getElementById(videoId);
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            canvas.getContext('2d').drawImage(videoEl, 0, 0, 640, 480);
+
+            const base64Image = canvas.toDataURL('image/jpeg');
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64Image })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || "✅ Snapshot saved!");
+                if (videoId === 'videoPlate') isPlateCaptured = true;
+                if (videoId === 'videoLicense') isLicenseCaptured = true;
+
+                if (isPlateCaptured && isLicenseCaptured) {
+                    document.getElementById("submitBtn").disabled = false;
+                }
+            });
+        }
+
+        function markSelectedSlot() {
+            document.querySelectorAll('.slot-card').forEach(box => box.classList.remove('selected'));
+            const chosenSlot = document.querySelector('input[name="slot_id"]:checked');
+            if (chosenSlot) {
+                const parentCard = chosenSlot.closest('.slot-card');
+                if (parentCard) parentCard.classList.add('selected');
+            }
+        }
+
+        function displayMessage() {
+            document.getElementById("confirmationMsg").style.display = "block";
+        }
+
+        function updateSlotView() {
+            const typeInput = document.querySelector('input[name="vehicle_type"]:checked');
+            const allBoxes = document.querySelectorAll('.slot-card');
+
+            if (!typeInput) {
+                allBoxes.forEach(slot => slot.style.display = 'inline-block');
+                return;
+            }
+
+            const typeVal = typeInput.value;
+            allBoxes.forEach(slot => {
+                const slotType = slot.getAttribute('data-type');
+                slot.style.display = (typeVal === slotType) ? 'inline-block' : 'none';
+            });
+        }
+
+        window.onload = function () {
+            initializeCamera('videoPlate');
+            initializeCamera('videoLicense');
+
+            document.querySelectorAll('input[name="slot_id"]').forEach(r =>
+                r.addEventListener('change', markSelectedSlot)
+            );
+
+            document.querySelectorAll('input[name="vehicle_type"]').forEach(r =>
+                r.addEventListener('change', updateSlotView)
+            );
+
+            updateSlotView();
+        }
+    </script>
+</head>
+<body>
+    <h2>Parking Entry Panel</h2>
+    <div class="container">
+        <form method="POST" action="/entry">
+            <div class="field">
+                <label>Select Vehicle Type:</label>
+                <div class="type-picker">
+                    <div class="radio-line">
+                        <input type="radio" id="bike" name="vehicle_type" value="Two-Wheeler" required>
+                        <label for="bike">🏍️ Two-Wheeler</label>
+                    </div>
+                    <div class="radio-line">
+                        <input type="radio" id="car" name="vehicle_type" value="Four-Wheeler" required>
+                        <label for="car">🚗 Four-Wheeler</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Choose Slot:</label>
+                <div class="grid-wrapper">
+                    {% for slot in slots %}
+                        <div class="slot-card" data-type="{{ slot.type }}">
+                            <input type="radio" name="slot_id" id="slot{{ slot.id }}" value="{{ slot.id }}" required>
+                            <label for="slot{{ slot.id }}">{{ slot.id }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <label>Enter 4-digit Passcode:</label>
+            <input type="text" name="password" maxlength="4" required>
+
+            <div class="video-area">
+                <label>Capture Number Plate:</label>
+                <div class="video-wrapper">
+                    <video id="videoPlate" autoplay></video>
+                    <button type="button" onclick="processImageCapture('/capture_plate', 'videoPlate', plateStream)">📸 Snap Plate</button>
+                </div>
+            </div>
+
+            <div class="video-area">
+                <label>Capture License Image:</label>
+                <div class="video-wrapper">
+                    <video id="videoLicense" autoplay></video>
+                    <button type="button" onclick="processImageCapture('/capture_license', 'videoLicense', licenseStream)">📸 Snap License</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <button type="submit" id="submitBtn" disabled>🚀 Submit Entry</button>
+                <div id="confirmationMsg">✅ Entry Submitted Successfully!</div>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
